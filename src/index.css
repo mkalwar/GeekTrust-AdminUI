@@ -11,3 +11,28 @@ code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
     monospace;
 }
+.header {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 1rem;
+  height: 3vh;
+  box-shadow: 0px 0px 5px 0px rgba(0, 0, 0, 0.2);
+  background: #001d4a;
+  color: white;
+  font-size: 32px;
+}
+.header p {
+  font-size: 2rem;
+}
+
+.header-title {
+  cursor: pointer;
+}
+
+.tableRow{
+  height: 30px;
+}
+.table{
+  Width: 650px;
+}
