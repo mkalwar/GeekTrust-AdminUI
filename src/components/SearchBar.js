@@ -1,18 +1,18 @@
 import React from "react";
 import { TextField } from "@mui/material";
 
-const SearchBar = ({ handleSearch }) =>{
-    return(
-        <div>
-        <TextField 
+const SearchBar = ({ value, changeValue }) => {
+  return (
+    <div>
+      <TextField
         fullWidth
-        label="search"
+        label="Seacrh by name, email or role"
         variant="outlined"
-        onChange={handleSearch}
-        style={{maxWidth: "100%",
-              marginTop: "1rem",
-              }}/>
-            </div>
-    );
+        value={value}
+        onChange={(e) => changeValue(e.target.value)}
+        style={{ maxWidth: "100%", marginTop: "1rem" }}
+      />
+    </div>
+  );
 };
 export default SearchBar;

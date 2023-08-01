@@ -5,14 +5,16 @@ import { Fab } from '@mui/material';
 const Pagination = ({ currentPage, totalPages, handlePagination }) =>{
     const paginationButtons = () =>{
         const buttons = [];
-        if(currentPage > 1){
+        if(currentPage >= 1){
             buttons.push(
-                <Fab sx={{ height:45, width:45 }} key="first" color="primary" onClick={() => handlePagination(1)}>
+                <Fab sx={{ height:45, width:45 }} 
+                key="first" color= { currentPage>1 ? "primary":"disabled" }
+                onClick={() => handlePagination(1)}>
                     {'<<'}
                 </Fab>
             );
             buttons.push(
-                <Fab sx={{ height:45, width:45 }} key="previous" color="primary" onClick={() => handlePagination(currentPage - 1)}>
+                <Fab sx={{ height:45, width:45 }} key="previous" color= { currentPage>1 ? "primary":"disabled" } onClick={() => handlePagination(currentPage - 1)}>
                     {'<'}
                 </Fab>
             );
@@ -31,14 +33,14 @@ const Pagination = ({ currentPage, totalPages, handlePagination }) =>{
             );
         }
 
-        if(currentPage < totalPages){
+        if(currentPage <= totalPages){
             buttons.push(
-                <Fab sx={{ height:45, width:45 }} key="next" color="primary" onClick={() => handlePagination(currentPage + 1)}>
+                <Fab sx={{ height:45, width:45 }} key="next" color= { currentPage < totalPages ? "primary":"disabled" } onClick={() => handlePagination(currentPage + 1)}>
                     {'>'}
                 </Fab>
             );
             buttons.push(
-                <Fab sx={{ height:45, width:45 }} key="last" color="primary" onClick={() => handlePagination(totalPages)}>
+                <Fab sx={{ height:45, width:45 }} key="last" color= { currentPage < totalPages ? "primary":"disabled" } onClick={() => handlePagination(totalPages)}>
                     {'>>'}
                 </Fab>
             );

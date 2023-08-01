@@ -1,156 +1,146 @@
-import React, { useState, useEffect } from 'react';
-import axios from 'axios';
-import  Container  from '@mui/material/Container';
-import UserTable from './UserTable';
-import  Pagination from './Pagination';
-import SearchBar from './SearchBar';
-import Button  from '@mui/material/Button';
-import Box from '@mui/material/Box';
-import EditUser from './EditUser';
-import AppBar from './AppBar';
+import React, { useState, useEffect } from "react";
+import axios from "axios";
+import Container from "@mui/material/Container";
+import UserTable from "./UserTable";
+import Pagination from "./Pagination";
+import SearchBar from "./SearchBar";
+import Button from "@mui/material/Button";
+import Box from "@mui/material/Box";
+import AppBar from "./AppBar";
+import { useSnackbar } from "notistack";
 
+const UserManagement = () => {
+  const { enqueueSnackbar } = useSnackbar();
+  const [usersData, setUsersData] = useState([]);
+  const [filteredData, setFilteredData] = useState([]);
+  const [currentPage, setCurrentPage] = useState([1]);
+  const [selectedRows, setSelectedRows] = useState([]);
+  const [searchText, setSearchText] = useState("");
+  const itemsPerPage = 10;
 
-const UserManagement = () =>{
-    const [usersData, setUsersData] = useState([]);
-    const [filteredData, setFilteredData] = useState([]);
-    const [currentPage, setCurrentPage] = useState([1]);
-    const [selectedRows, setSelectedRows] = useState([]);
-    const [editMode, setEditMode] =useState(false);
-    const [editingUser, setEditingUser] = useState(null);
-    const itemsPerPage =10;
+  useEffect(() => {
+    fetchData();
+  }, []);
 
-    useEffect(() => {
-        document.title = "AdminUI";
-      }, []);
+  useEffect(() => {
+    if (searchText.length) handleSearch(searchText);
+    else setFilteredData(usersData);
+  }, [searchText, usersData]);
 
-    useEffect(()=>{
-        fetchData();
-    }, []);
-
-    const fetchData = async () =>{
-        try{
-            const res = await axios.get('https://geektrust.s3-ap-southeast-1.amazonaws.com/adminui-problem/members.json');
-            console.log(res.data);
-            setUsersData(res.data);
-            setFilteredData(res.data);
-        }
-        catch(error){
-            console.error("Error in fetching:", error);
-        }
-    };
-
-    //Function to handle search
-    const handleSearch = (event)=>{
-        const searchTerm = event.target.value.trim().toLowerCase();
-        const filteredUser = usersData.filter((user) =>
-        {
-            return(
-                user.name.toLowerCase().includes(searchTerm) ||
-                user.name.toLowerCase().includes(searchTerm) ||
-                user.name.toLowerCase().includes(searchTerm)
-            );
-        });
-        setFilteredData(filteredUser);
-        setCurrentPage(1);
-    };
-
-    //Function to handle Pagination
-    const handlePagination = (newPage)=>{
-        setCurrentPage(newPage);
-    };
-
-    //Function to handle Row Selection
-    const handleRowSelect =(event, userId) =>{
-        const selectedIndex = selectedRows.indexOf(userId);
-        let newSelectedRows = [];
-        if(selectedIndex === -1){
-            newSelectedRows = [...selectedRows, userId];
-        }else{
-            newSelectedRows = selectedRows.filter((id)=> id !== userId)
-        }
-        setSelectedRows(newSelectedRows);
-    };
-
-    //Function to handle Edit
-    const handleEdit = (userId)=>{
-        const userToEdit = usersData.find((user) => user.id === userId);
-        setEditingUser(userToEdit);
-        setEditMode(true);
-        console.log(`editing user with id: ${userId}`);
+  const fetchData = async () => {
+    try {
+      const res = await axios.get(
+        "https://geektrust.s3-ap-southeast-1.amazonaws.com/adminui-problem/members.json"
+      );
+      setUsersData(res.data);
+      setFilteredData(res.data);
+    } catch (error) {
+      if (error.response.status === 400) {
+        enqueueSnackbar(error.response.data.message, { variant: "error" });
+      } else {
+        enqueueSnackbar(
+          "Something went wrong. Check that the backend is running, reachable and returns valid JSON.",
+          { variant: "error" }
+        );
+      }
     }
-    
-    //CancelEdit
-    const handleCancelEdit = ()=>{
-        setEditingUser(null);
-        setEditMode(false);
+  };
+
+  //Function to handle search
+  const handleSearch = (searchText) => {
+    const searchTerm = searchText.toLowerCase();
+    const filteredUser = usersData.filter((user) => {
+      return (
+        user.name.toLowerCase().includes(searchTerm) ||
+        user.role.toLowerCase().includes(searchTerm) ||
+        user.email.toLowerCase().includes(searchTerm)
+      );
+    });
+    if (!filteredUser.length) {
+      enqueueSnackbar("No result Found", {
+        variant: "warning",
+        autoHideDuration: 1000,
+      });
     }
+    setFilteredData(filteredUser);
+    setCurrentPage(1);
+  };
 
-    //Handle Save Edit
-    const handleSaveEdit =(editedUser)=>{
-        const updatedUsers = usersData.map((user) =>{
-            if(user.id ===editedUser.id){
-                return {...editedUser}
-            }
-            return user;
-        })
-        setUsersData(updatedUsers);
-        setFilteredData(updatedUsers);
-        setEditingUser(null);
-        setEditMode(false);
+  //Function to handle Pagination
+  const handlePagination = (newPage) => {
+    setSelectedRows([]);
+    setCurrentPage(newPage);
+  };
+
+  //Function to handle Row Selection
+  const handleRowSelect = (event, userId) => {
+    const selectedIndex = selectedRows.indexOf(userId);
+    let newSelectedRows = [];
+    if (selectedIndex === -1) {
+      newSelectedRows = [...selectedRows, userId];
+    } else {
+      newSelectedRows = selectedRows.filter((id) => id !== userId);
     }
+    setSelectedRows(newSelectedRows);
+  };
 
-    //handle Delete 
-    const handleDelete = (userId)=>{
-        const updatedData = usersData.filter((user) => user.id !== userId);
-        setUsersData(updatedData);
-        setFilteredData(updatedData);
-        console.log(`Deleting user with ${userId}`);
-    };
+  //Handle Save Edit
+  const handleSaveEdit = (editedUser) => {
+    const updatedUsers = usersData.map((user) => {
+      if (user.id === editedUser.id) {
+        return { ...editedUser };
+      }
+      return user;
+    });
+    setUsersData(updatedUsers);
+  };
 
-    //Handle Delete Selected rows
-    const handleDeleteSelected =()=>{
-        const updatedData = usersData.filter((user) => !selectedRows.includes(user.id));
-        console.log("Deleting slected users:", selectedRows);
-        setUsersData(updatedData);
-        setFilteredData(updatedData);
-        setSelectedRows([]);
-    };
+  //handle Delete
+  const handleDelete = (userId) => {
+    const updatedData = usersData.filter((user) => user.id !== userId);
+    setUsersData(updatedData);
+    setSearchText("");
+  };
 
+  //Handle Delete Selected rows
+  const handleDeleteSelected = () => {
+    const updatedData = usersData.filter(
+      (user) => !selectedRows.includes(user.id)
+    );
+    setUsersData(updatedData);
+    setSelectedRows([]);
+  };
 
-    //Index of first and Last item on current page
-    const startIndex = (currentPage -1 ) *itemsPerPage;
+  //Index of first and Last item on current page
+  const startIndex = (currentPage - 1) * itemsPerPage;
 
-    const endIndex = startIndex + itemsPerPage;
-    //current Page Data
-    const currentPageData = filteredData.slice(startIndex, endIndex);
-    //Total no of pages
-    const totalPages = Math.ceil(filteredData.length/itemsPerPage);
+  const endIndex = startIndex + itemsPerPage;
+  //current Page Data
+  const currentPageData = filteredData.slice(startIndex, endIndex);
+  //Total no of pages
+  const totalPages = Math.ceil(filteredData.length / itemsPerPage);
 
-    return(
-        <div style={{
-            height: 'auto',
-            padding: '1rem', // Add padding to the container
-          }}>
-            <AppBar/>
-        
-        <Container >
-            
-        {editMode ?
-            ( <EditUser user={editingUser} handleSave={handleSaveEdit} handleCancel={handleCancelEdit}/>):
-             ( 
-            <div> 
-                    
-            <SearchBar handleSearch={handleSearch}/>
-            <UserTable 
-            usersData={usersData}
+  return (
+    <div
+      style={{
+        height: "auto",
+        padding: "1rem",
+      }}
+    >
+      <AppBar />
+
+      <Container>
+        <div>
+          <SearchBar value={searchText} changeValue={setSearchText} />
+          <UserTable
             currentPageData={currentPageData}
             selectedRows={selectedRows}
             handleRowSelect={handleRowSelect}
-            handleEdit={handleEdit}
+            handleSaveEdit={handleSaveEdit}
             handleDelete={handleDelete}
             setSelectedRows={setSelectedRows}
-            />
-            <Box 
+          />
+          <Box
             position="fixed"
             bottom={0}
             left={0}
@@ -159,23 +149,32 @@ const UserManagement = () =>{
             padding="1rem"
             display="flex"
             justifyContent="space-between"
-            >
+          >
+            {currentPageData.length !== 0 && (
+              <>
                 <span>
-            <Button 
-            variant="contained" 
-            color="error" 
-            onClick={handleDeleteSelected} 
-            disabled={selectedRows.length ===0} 
-            >
-                Delete Selected
-            </Button></span>
-            <Pagination currentPage={currentPage} totalPages={totalPages} handlePagination={handlePagination}/>
-            </Box>
-            </div>
-              )} 
-        </Container>
+                  <Button
+                    variant="contained"
+                    color="error"
+                    onClick={handleDeleteSelected}
+                    disabled={selectedRows.length === 0}
+                  >
+                    Delete Selected
+                  </Button>
+                </span>
+
+                <Pagination
+                  currentPage={currentPage}
+                  totalPages={totalPages}
+                  handlePagination={handlePagination}
+                />
+              </>
+            )}
+          </Box>
         </div>
-    );
+      </Container>
+    </div>
+  );
 };
 
 export default UserManagement;
