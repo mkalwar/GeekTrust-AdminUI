@@ -1,21 +1,23 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-import Container from "@mui/material/Container";
-import UserTable from "./UserTable";
-import Pagination from "./Pagination";
-import SearchBar from "./SearchBar";
+import UserTable from "../UserTable/UserTable";
+import Pagination from "../Pagination/Pagination";
+import SearchBar from "../SearchBar/SearchBar";
 import Button from "@mui/material/Button";
 import Box from "@mui/material/Box";
-import AppBar from "./AppBar";
+import AppBar from "../AppBar/AppBar";
 import { useSnackbar } from "notistack";
+// import { Typography } from "@mui/material";
+import "./UserManagement.css";
 
 const UserManagement = () => {
   const { enqueueSnackbar } = useSnackbar();
   const [usersData, setUsersData] = useState([]);
   const [filteredData, setFilteredData] = useState([]);
-  const [currentPage, setCurrentPage] = useState([1]);
+  const [currentPage, setCurrentPage] = useState(1);
   const [selectedRows, setSelectedRows] = useState([]);
   const [searchText, setSearchText] = useState("");
+  const [totalPages, setTotalPages] = useState(1);
   const itemsPerPage = 10;
 
   useEffect(() => {
@@ -26,6 +28,10 @@ const UserManagement = () => {
     if (searchText.length) handleSearch(searchText);
     else setFilteredData(usersData);
   }, [searchText, usersData]);
+
+  useEffect(() => {
+    setTotalPages(Math.ceil(filteredData.length / itemsPerPage));
+  }, [filteredData]);
 
   const fetchData = async () => {
     try {
@@ -39,14 +45,13 @@ const UserManagement = () => {
         enqueueSnackbar(error.response.data.message, { variant: "error" });
       } else {
         enqueueSnackbar(
-          "Something went wrong. Check that the backend is running, reachable and returns valid JSON.",
+          "Something went wrong. Check that the backend is running, reachable, and returns valid JSON.",
           { variant: "error" }
         );
       }
     }
   };
 
-  //Function to handle search
   const handleSearch = (searchText) => {
     const searchTerm = searchText.toLowerCase();
     const filteredUser = usersData.filter((user) => {
@@ -57,7 +62,7 @@ const UserManagement = () => {
       );
     });
     if (!filteredUser.length) {
-      enqueueSnackbar("No result Found", {
+      enqueueSnackbar("No results found", {
         variant: "warning",
         autoHideDuration: 1000,
       });
@@ -66,13 +71,11 @@ const UserManagement = () => {
     setCurrentPage(1);
   };
 
-  //Function to handle Pagination
   const handlePagination = (newPage) => {
     setSelectedRows([]);
     setCurrentPage(newPage);
   };
 
-  //Function to handle Row Selection
   const handleRowSelect = (event, userId) => {
     const selectedIndex = selectedRows.indexOf(userId);
     let newSelectedRows = [];
@@ -84,7 +87,6 @@ const UserManagement = () => {
     setSelectedRows(newSelectedRows);
   };
 
-  //Handle Save Edit
   const handleSaveEdit = (editedUser) => {
     const updatedUsers = usersData.map((user) => {
       if (user.id === editedUser.id) {
@@ -93,86 +95,78 @@ const UserManagement = () => {
       return user;
     });
     setUsersData(updatedUsers);
+    setSelectedRows([]);
   };
 
-  //handle Delete
   const handleDelete = (userId) => {
     const updatedData = usersData.filter((user) => user.id !== userId);
     setUsersData(updatedData);
     setSearchText("");
   };
 
-  //Handle Delete Selected rows
   const handleDeleteSelected = () => {
     const updatedData = usersData.filter(
       (user) => !selectedRows.includes(user.id)
     );
     setUsersData(updatedData);
     setSelectedRows([]);
+
+    const newTotalUsers = updatedData.length;
+    setTotalPages(Math.ceil(newTotalUsers / itemsPerPage));
+
+    if (currentPage > newTotalUsers / itemsPerPage) {
+      setCurrentPage(Math.ceil(newTotalUsers / itemsPerPage));
+    }
   };
 
-  //Index of first and Last item on current page
   const startIndex = (currentPage - 1) * itemsPerPage;
-
-  const endIndex = startIndex + itemsPerPage;
-  //current Page Data
+  const endIndex = Math.min(startIndex + itemsPerPage, filteredData.length);
   const currentPageData = filteredData.slice(startIndex, endIndex);
-  //Total no of pages
-  const totalPages = Math.ceil(filteredData.length / itemsPerPage);
 
   return (
-    <div
-      style={{
-        height: "auto",
-        padding: "1rem",
-      }}
-    >
+    <div className="user-management">
       <AppBar />
 
-      <Container>
+      <div className="container">
+        <SearchBar value={searchText} changeValue={setSearchText} />
+        <UserTable
+          currentPageData={currentPageData}
+          selectedRows={selectedRows}
+          handleRowSelect={handleRowSelect}
+          handleSaveEdit={handleSaveEdit}
+          handleDelete={handleDelete}
+          setSelectedRows={setSelectedRows}
+        />
+      </div>
+      <Box
+        bottom={0}
+        left={0}
+        width="100%"
+        margin="auto auto"
+        bgcolor="white"
+        padding="1rem"
+        className="action-bar"
+      >
         <div>
-          <SearchBar value={searchText} changeValue={setSearchText} />
-          <UserTable
-            currentPageData={currentPageData}
-            selectedRows={selectedRows}
-            handleRowSelect={handleRowSelect}
-            handleSaveEdit={handleSaveEdit}
-            handleDelete={handleDelete}
-            setSelectedRows={setSelectedRows}
-          />
-          <Box
-            position="fixed"
-            bottom={0}
-            left={0}
-            width="100%"
-            bgcolor="white"
-            padding="1rem"
-            display="flex"
-            justifyContent="space-between"
+          <Button
+            variant="contained"
+            color="error"
+            onClick={handleDeleteSelected}
+            fullWidth
+            disabled={selectedRows.length === 0}
           >
-            {currentPageData.length !== 0 && (
-              <>
-                <span>
-                  <Button
-                    variant="contained"
-                    color="error"
-                    onClick={handleDeleteSelected}
-                    disabled={selectedRows.length === 0}
-                  >
-                    Delete Selected
-                  </Button>
-                </span>
-
-                <Pagination
-                  currentPage={currentPage}
-                  totalPages={totalPages}
-                  handlePagination={handlePagination}
-                />
-              </>
-            )}
-          </Box>
+            Delete Selected
+          </Button>
         </div>
-      </Container>
+        <div className="pagination-container">
+          {/* <Typography variant="body1">{`${currentPage} of ${totalPages}`}</Typography> */}
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            handlePagination={handlePagination}
+          />
+        </div>
+      </Box>
     </div>
   );
 };

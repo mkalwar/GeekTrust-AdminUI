@@ -1,9 +1,9 @@
 import * as React from "react";
-import UserManagement from "./components/UserManagement";
-function App(){
-  return(
+import UserManagement from "./components/UserManagement/UserManagement";
+function App() {
+  return (
     <div>
-      <UserManagement/>
+      <UserManagement />
     </div>
   );
 }

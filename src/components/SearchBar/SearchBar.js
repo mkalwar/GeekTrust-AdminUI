@@ -6,7 +6,7 @@ const SearchBar = ({ value, changeValue }) => {
     <div>
       <TextField
         fullWidth
-        label="Seacrh by name, email or role"
+        label="Search by name, email or role"
         variant="outlined"
         value={value}
         onChange={(e) => changeValue(e.target.value)}

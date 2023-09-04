@@ -15,11 +15,9 @@ import {
   Select,
   MenuItem,
 } from "@mui/material";
-
-import DeleteIcon from "@mui/icons-material/Delete";
+import { MdOutlineDelete, MdDone, MdOutlineClose } from "react-icons/md";
 import { FiEdit } from "react-icons/fi";
-import DoneIcon from "@mui/icons-material/Done";
-import CloseIcon from "@mui/icons-material/Close";
+import "./UserTable.css";
 
 const UserTable = ({
   currentPageData,
@@ -53,14 +51,14 @@ const UserTable = ({
 
   return (
     <TableContainer component={Paper}>
-      <Table size="small" aria-label="a dense table">
+      <Table size="small" className="user-table">
         <TableHead>
           <TableRow>
             <TableCell>
               <Checkbox
                 checked={
                   selectedRows.length === currentPageData.length &&
-                  currentPageData.length !== 0
+                  selectedRows.length > 0
                 }
                 onChange={() =>
                   setSelectedRows(
@@ -71,30 +69,35 @@ const UserTable = ({
                 }
               />
             </TableCell>
-            <TableCell>
+            <TableCell className="table-header-cell">
               <b>Name</b>
             </TableCell>
-            <TableCell>
+            <TableCell className="table-header-cell">
               <b>Email</b>
             </TableCell>
-            <TableCell>
+            <TableCell className="table-header-cell">
               <b>Role</b>
             </TableCell>
-            <TableCell>
+            <TableCell className="table-header-cell">
               <b>Action</b>
             </TableCell>
           </TableRow>
         </TableHead>
         <TableBody>
           {currentPageData.map((user) => (
-            <TableRow key={user.id}>
+            <TableRow
+              key={user.id}
+              className={`table-row ${
+                selectedRows.includes(user.id) ? "selected-row" : ""
+              }`}
+            >
               <TableCell>
                 <Checkbox
                   checked={selectedRows.includes(user.id)}
                   onChange={(event) => handleRowSelect(event, user.id)}
                 />
               </TableCell>
-              <TableCell>
+              <TableCell className="table-cell">
                 {isEditing(user.id) ? (
                   <TextField
                     value={editedUserData.name || user.name}
@@ -106,7 +109,7 @@ const UserTable = ({
                   user.name
                 )}
               </TableCell>
-              <TableCell>
+              <TableCell className="table-cell">
                 {isEditing(user.id) ? (
                   <TextField
                     value={editedUserData.email || user.email}
@@ -118,7 +121,7 @@ const UserTable = ({
                   user.email
                 )}
               </TableCell>
-              <TableCell>
+              <TableCell className="table-cell">
                 {isEditing(user.id) ? (
                   <Select
                     size="small"
@@ -135,7 +138,7 @@ const UserTable = ({
                   user.role
                 )}
               </TableCell>
-              <TableCell>
+              <TableCell className="table-cell">
                 {isEditing(user.id) ? (
                   <Box
                     display="flex"
@@ -148,9 +151,8 @@ const UserTable = ({
                         variant="text"
                         color="success"
                         onClick={handleSave}
-                        startIcon={<DoneIcon />}
+                        startIcon={<MdDone />}
                       />
-                      {/* Save */}
                     </ButtonGroup>
                     <ButtonGroup>
                       <Button
@@ -158,9 +160,8 @@ const UserTable = ({
                         variant="text"
                         color="error"
                         onClick={handleCancel}
-                        startIcon={<CloseIcon />}
+                        startIcon={<MdOutlineClose />}
                       />
-                      {/* Cancel */}
                     </ButtonGroup>
                   </Box>
                 ) : (
@@ -183,7 +184,7 @@ const UserTable = ({
                     <ButtonGroup>
                       <Button
                         className="edit-delete"
-                        startIcon={<DeleteIcon />}
+                        startIcon={<MdOutlineDelete />}
                         variant="text"
                         color="error"
                         onClick={() => handleDelete(user.id)}
